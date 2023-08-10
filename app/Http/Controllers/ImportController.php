@@ -63,7 +63,8 @@ class ImportController extends Controller
             // ]);
         }
     
-        return redirect()->back()->with('success', 'File uploaded successfully');
+        return redirect()->route('overview')->with('success', 'File uploaded successfully');
+
     }
 
     public function get_data($row){

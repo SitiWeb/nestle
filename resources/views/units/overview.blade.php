@@ -51,7 +51,11 @@
     </x-slot>
     <x-filters :data="$filter_data" :totalResults="$totalResults"></x-filters>
     <div class="container mx-auto">
-        
+    @if (session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+        @endif
         @if(!$units->isEmpty())
         
         <div class="grid grid-cols-3 gap-4 ">
