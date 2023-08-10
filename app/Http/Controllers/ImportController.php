@@ -30,6 +30,8 @@ class ImportController extends Controller
                 return redirect()->back()->with('error', 'File not found');
             }
             $this->run_import($absolutePath);
+            return redirect()->route('units.overview')->with('success', 'File uploaded successfully');
+
         } 
     }
 
@@ -63,7 +65,7 @@ class ImportController extends Controller
             // ]);
         }
     
-        return redirect()->route('units.overview')->with('success', 'File uploaded successfully');
+        
 
     }
 
