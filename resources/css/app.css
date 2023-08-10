@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+html {
+    font-size: 16px;
+}
+
+.region-filter {
+    height: 150px;
+    overflow: hidden;
+    overflow-y: auto;
+}
+
+.svgMap-map-wrapper {
+    background: #F9F9F9;
+}
+
+.lb-nav .lb-prev,
+.lb-nav .lb-next {
+    opacity: 0.3!important;
+}
+
+.lb-nav a.lb-prev:hover,
+.lb-nav a.lb-next:hover {
+    filter: alpha(Opacity=100);
+    opacity: 1!important;
+}
+
+input#search {
+    width: 100%;
+}
