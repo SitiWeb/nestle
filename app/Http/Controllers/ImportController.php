@@ -336,9 +336,7 @@ class ImportController extends Controller
                         ['meta_key' => $key, 'unit_id' => $unit->id],
                         ['meta_value' => $meta]
                     );
-                    if ($key == 'cf_unit_type'){
-                        dd($unit->meta()->get());
-                    }
+                  
                 }
             }
             
