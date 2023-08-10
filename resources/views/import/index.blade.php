@@ -1,4 +1,5 @@
 <x-app-layout>
+<div class="container mx-auto bg-white rounded shadow p-6">
 <form method="POST" action="{{ route('import.upload') }}" class="w-1/2" enctype="multipart/form-data">
 @csrf
 <div class="pb-6">
@@ -15,4 +16,5 @@
     {{ __('Upload & Import') }}
 </x-primary-button>
 </form>
+</div>
 </x-app-layout>
