@@ -51,7 +51,7 @@
     </x-slot>
     <x-filters :data="$filter_data" :totalResults="$totalResults"></x-filters>
     <div class="container mx-auto">
-    @if (session('success'))
+        @if (session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
         </div>
