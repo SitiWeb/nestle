@@ -71,6 +71,7 @@ class Shelfs extends Component
             $shelf->length = !empty($shelfData['length']) ? $shelfData['length'] : null;
             $shelf->height = !empty($shelfData['height']) ? $shelfData['height'] : null;
             $shelf->type = !empty($shelfData['type']) ? $shelfData['type'] : null;
+            $shelf->index = !empty($shelfData['index']) ? $shelfData['index'] : null;
             // Set other attributes as needed
             $shelf->save();
         }

@@ -67,6 +67,10 @@
                 <label for="{{ $shelf['name'] }}[{{$index}}][length]" class="block text-sm font-medium text-gray-700">Depth</label>
                 <input type="number" wire:model.defer="shelves.{{$index}}.length" name="{{ $shelf['name'] }}[{{$index}}][length]" id="{{ $shelf['name'] }}[{{$index}}][length]" placeholder="mm" class="block w-full px-4 py-2 mt-1 text-gray-800 border border-gray-300 rounded-md focus:outline-none focus:border-indigo-500">
             </div>
+            
+            <div class="w-1/4 px-3  md:mb-0">
+                <div></div>
+            </div>
             <div class="w-1/4 px-3  md:mb-0">
                 <div><a href="#" wire:click.prevent="removeShelf({{$index}})">Delete</a></div>
             </div>

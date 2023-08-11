@@ -127,6 +127,7 @@ class UnitController extends Controller
         $settings = $unit->meta()->get()->pluck('meta_value', 'meta_key');
         
         $base = [
+            ['label' => 'Unit number',                  'key' => 'cf_unit_number'],
             ['label' => 'Asset Tag Number',             'key' => 'cf_asset_tag_number'],
             ['label' => 'NITR Location Code',           'key' => 'cf_nitr_location_code'],
             ['label' => 'NITR Data Source Code',        'key' => 'cf_nitr_data_source_code'],
@@ -136,6 +137,8 @@ class UnitController extends Controller
             ['label' => 'Region',                       'key' => 'cf_region'],
             ['label' => 'NITR Region',                  'key' => 'cf_nitr_region'],
             ['label' => 'NITR Top 50 Ranking',          'key' => 'cf_nitr_top_50'],
+            ['label' => 'NITR Top 46 Ranking',          'key' => 'cf_nitr_top_46'],
+            ['label' => 'Customer level 4',          'key' => 'cf_customer_level_4'],
             ['label' => 'Airport/Downtown Store Name',  'key' => 'airport_store_name'],
             ['label' => 'Airport Code',                 'key' => 'cf_nitr_location_code'],
             ['label' => 'Terminal',                     'key' => 'terminal'],
@@ -169,8 +172,27 @@ class UnitController extends Controller
                     if ($shelf->type != $dimensionKey){
                         continue;
                     }
-                    $str = $shelf->width .'W x '. $shelf->height .'H x '. $shelf->length.'D';
-                    $meta[] =  ['label' => $shelf->name.' ' .$row['label'], 'key' => $row['key'], 'value' => $str ];
+                    $dimensions = [];
+                    $label = [];
+                    if ($shelf->width) {
+                        $dimensions[] = (int)$shelf->width . 'mm';
+                        $label[] = 'L';
+                    }
+
+                    if ($shelf->height) {
+                        $dimensions[] = (int)$shelf->height . 'mm';
+                        $label[] = 'H';
+                    }
+
+                    if ($shelf->length) {
+                        $dimensions[] = (int)$shelf->length . 'mm';
+                        $label[] = 'D';
+                    }
+
+                    $str = implode(' x ', $dimensions);
+                    $new_label = implode('x', $label);
+
+                    $meta[] =  ['label' => $shelf->name.' ' .$row['label']. ' (' . $new_label.')'  , 'key' => $row['key'], 'value' => $str ];
                
                 }
                 
