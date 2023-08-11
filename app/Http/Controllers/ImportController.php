@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-
+use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 use App\Models\Brand;
 use App\Models\Unit;
 use App\Models\Location;
+use App\Models\Shelf;
 
 class ImportController extends Controller
 {
@@ -46,9 +47,10 @@ class ImportController extends Controller
     
         // Skip the first 8 rows
         $rows = array_slice($rows, 8);
-    
+        $i = 9;
         // Process the rows starting from row 9
         foreach ($rows as $row) {
+      
             if (!empty($row[0])){
                 $data = $this->get_data($row);
             }
@@ -56,13 +58,7 @@ class ImportController extends Controller
                 break;
             }
             
-           
-            // Insert the row into the database or perform other operations
-            // Unit::create([
-            //     'column1' => $row[0],
-            //     'column2' => $row[1],
-            //     // ...
-            // ]);
+            $i++;
         }
     
         
@@ -110,75 +106,79 @@ class ImportController extends Controller
         ];
 
         if (isset($row[0])){
-            $data['cf_unit_number'] = ($row[0]);
+            $data['cf_unit_number'] = $this->prepare_value($row[0]);
+            
         }
 
         if (isset($row[1])){
-            $data['cf_nitr_location_code'] = ($row[1]);
+            $data['cf_nitr_location_code'] = $this->prepare_value($row[1]);
         }
 
         if (isset($row[2])){
-            $data['cf_nitr_data_source_code'] = ($row[2]);
+            $data['cf_nitr_data_source_code'] = $this->prepare_value($row[2]);
         }
 
         if (isset($row[5])){
-            $data['cf_region'] = ($row[5]);
+            $data['cf_region'] = $this->prepare_value($row[5]);
         }
 
         if (isset($row[6])){
-            $data['cf_nitr_region'] = ($row[6]);
+            $data['cf_nitr_region'] = $this->prepare_value($row[6]);
         }
 
         if (isset($row[7])){
-            $data['cf_nitr_top_50'] = ($row[7]);
+            $data['cf_nitr_top_50'] = $this->prepare_value($row[7]);
         }
 
         if (isset($row[8])){
-            $data['cf_nitr_top_46'] = ($row[8]);
+            $data['cf_nitr_top_46'] = $this->prepare_value($row[8]);
         }
 
         if (isset($row[9])){
-            $data['airport_name'] = ($row[9]);
+            $data['airport_name'] = $this->prepare_value($row[9]);
         }
 
         if (isset($row[10])){
             
-            $data['cf_unit_type'] = ($row[10]);
+            $data['cf_unit_type'] = $this->prepare_value($row[10]);
         }
 
         if (isset($row[11])){
-            $data['airport_code'] = ($row[11]);
+            $data['airport_code'] = $this->prepare_value($row[11]);
         }
 
         if (isset($row[12])){
-            $data['terminal'] = ($row[12]);
+            $data['terminal'] = $this->prepare_value($row[12]);
         }
 
         if (isset($row[13])){
-            $data['store'] = ($row[13]);
+            $data['store'] = $this->prepare_value($row[13]);
         }
 
         if (isset($row[14])){
-            $data['retailer'] = ($row[14]);
+            $data['retailer'] = $this->prepare_value($row[14]);
         }
 
         if (isset($row[15])){
-            $data['cf_customer_level_4'] = ($row[15]);
+            $data['cf_customer_level_4'] = $this->prepare_value($row[15]);
         }
 
         if (isset($row[16])){
-            $data['brand'] = ($row[16]);
+            $data['brand'] = $this->prepare_value($row[16]);
         }
 
         
         if (isset($row[26])){
-            $data['cf_ba_present'] = ($row[26]);
+            $data['cf_ba_present'] = $this->prepare_value($row[26]);
         }
         if (isset($row[27])){
             if ($row[27] !== 'N/A'){
                 $date = \DateTime::createFromFormat('m/d/y', $row[27]);
-                $databaseDate = $date->format('Y-m-d');
-                $data['cf_install_date'] = $databaseDate;
+                if ($date){
+                    $databaseDate = $date->format('Y-m-d');
+                    $data['cf_install_date'] = $databaseDate;
+                }
+                
                 
             }
            
@@ -188,8 +188,11 @@ class ImportController extends Controller
         if (isset($row[28])){
             if ($row[28] !== 'N/A'){
                 $date = \DateTime::createFromFormat('m/d/y', $row[28]);
-                $databaseDate = $date->format('Y-m-d');
-                $data['cf_renovation_date'] = $databaseDate;
+                if ($date){
+                    $databaseDate = $date->format('Y-m-d');
+                    $data['cf_renovation_date'] = $databaseDate;
+                }
+                
             }
            
      
@@ -197,8 +200,11 @@ class ImportController extends Controller
         if (isset($row[29])){
             if ($row[29] !== 'N/A'){
                 $date = \DateTime::createFromFormat('m/d/y', $row[29]);
-                $databaseDate = $date->format('Y-m-d');
-                $data['cf_audit_date'] = $databaseDate;
+                if ($date){
+                    $databaseDate = $date->format('Y-m-d');
+                    $data['cf_audit_date'] = $databaseDate;
+                }
+                
             }
             
         }
@@ -207,93 +213,199 @@ class ImportController extends Controller
 
 
         if (isset($row[30])){
-            $data['cf_auditing_supplier'] = ($row[30]);
+            $data['cf_auditing_supplier'] = $this->prepare_value($row[30]);
         }
 
         if (isset($row[31])){
-            $data['cf_auditing_supplier_technician'] = ($row[31]);
+            $data['cf_auditing_supplier_technician'] = $this->prepare_value($row[31]);
         }
 
         if (isset($row[33])){
-            $data['cf_asset_tag_number'] = ($row[33]);
-        }
-
-        if (isset($row[34])){
-            $data['cf_unit_condition'] = ($row[34]);
+            $data['cf_asset_tag_number'] = $this->prepare_value($row[33]);
         }
 
         if (isset($row[35])){
-            $data['sustainability_feature'] = ($row[35]);
+            $data['cf_unit_condition'] = $this->prepare_value($row[35]);
         }
 
         if (isset($row[36])){
-            $data['dimensions'] = ($row[36]);
+   
+            $data['sustainability_feature'] = $this->prepare_value($row[36]);
         }
-
+        $dimensions = [];
+        
         if (isset($row[37])){
-            $data['dimensions_comments'] = ($row[37]);
+            
+            $result = $this->prepare_dimensions($row[37] , 'fixturebuild', $row[38], 'General Dimensions');
+            if ($result){
+                $dimensions[] = $result;
+            }
         }
-
-        if (isset($row[38])){
-            $data['graphic_dimensions'] = ($row[38]);
-        }
-
+ 
         if (isset($row[39])){
-            $data['actual_graphic_dimensions'] = ($row[39]);
+            $result = $this->prepare_dimensions($row[39] , 'graphics', $row[47] , 'Graphics visual 1');
+            if ($result){
+                $dimensions[] = $result;
+            }
         }
 
         if (isset($row[40])){
-            $data['shelf_dimensions_1'] = ($row[40]);
+            $result = $this->prepare_dimensions($row[40] , 'graphics', $row[47],  'Graphics actual 1');
+            if ($result){
+                $dimensions[] = $result;
+            }
         }
-        
+
         if (isset($row[41])){
-            $data['shelf_dimensions_2'] = ($row[41]);
+            $result = $this->prepare_dimensions($row[41] , 'graphics', $row[47],  'Graphics visual 2');
+            if ($result){
+                $dimensions[] = $result;
+            }
         }
 
         if (isset($row[42])){
-            $data['shelf_dimensions_3'] = ($row[42]);
+            $result = $this->prepare_dimensions($row[42] , 'graphics', $row[47],  'Graphics actual 2');
+            if ($result){
+                $dimensions[] = $result;
+            }
         }
+
         if (isset($row[43])){
-            $data['shelf_dimensions_4'] = ($row[43]);
+            $result = $this->prepare_dimensions($row[43] , 'graphics', $row[47],  'Graphics actual 3');
+            if ($result){
+                $dimensions[] = $result;
+            }
         }
+
         if (isset($row[44])){
-            $data['shelf_dimensions_5'] = ($row[44]);
+            $result = $this->prepare_dimensions($row[44] , 'graphics', $row[47],  'Graphics visual 3');
+            if ($result){
+                $dimensions[] = $result;
+            }
         }
+
         if (isset($row[45])){
-            $data['shelf_dimensions_6'] = ($row[45]);
+            $result = $this->prepare_dimensions($row[45] , 'graphics', $row[47],  'Graphics actual 4');
+            if ($result){
+                $dimensions[] = $result;
+            }
         }
+
         if (isset($row[46])){
-            $data['shelf_material'] = ($row[46]);
+            $result = $this->prepare_dimensions($row[46] , 'graphics', $row[47],  'Graphics visual 4');
+            if ($result){
+                $dimensions[] = $result;
+            }
         }
-        if (isset($row[47])){
-            $data['shelf_comments'] = ($row[47]);
-        }
+
         if (isset($row[48])){
-            $data['screen_dimensions_1'] = ($row[48]);
+            $result = $this->prepare_dimensions($row[48] , 'shelf', $row[55],  'Shelf 1');
+            if ($result){
+                $dimensions[] = $result;
+            }
         }
 
         if (isset($row[49])){
-            $data['screen_dimensions_1'] = ($row[49]);
-        }
-        if (isset($row[50])){
-            $data['screen_dimensions_2'] = ($row[50]);
-        }
-        if (isset($row[51])){
-            $data['screen_comments'] = ($row[51]);
-        }
-        if (isset($row[52])){
-            $data['description'] = ($row[52]);
-        }
-        $new_data = [];
-        foreach($data as $key => $value){
-            switch ($value){
-                case "N/A":
-                    $value = '';
-                    break;
+            $result = $this->prepare_dimensions($row[49] , 'shelf', $row[55],  'Shelf 2');
+            if ($result){
+                $dimensions[] = $result;
             }
-            $new_data[$key] = $value;
         }
-        $this->import_unit($new_data);
+
+        if (isset($row[50])){
+            $result = $this->prepare_dimensions($row[50] , 'shelf', $row[55],  'Shelf 3');
+            if ($result){
+                $dimensions[] = $result;
+            }
+        }
+
+        if (isset($row[51])){
+            $result = $this->prepare_dimensions($row[51] , 'shelf', $row[55],  'Shelf 4');
+            if ($result){
+                $dimensions[] = $result;
+            }
+        }
+
+        if (isset($row[52])){
+            $result = $this->prepare_dimensions($row[52] , 'shelf', $row[55],  'Shelf 5');
+            if ($result){
+                $dimensions[] = $result;
+            }
+        }
+
+        if (isset($row[53])){
+            $result = $this->prepare_dimensions($row[53] , 'shelf', $row[55],  'Shelf 6');
+            if ($result){
+                $dimensions[] = $result;
+            }
+        }
+   
+
+        if (isset($row[56])){
+            $result = $this->prepare_dimensions($row[56] , 'screen', $row[58],  'Screen 1');
+            if ($result){
+                $dimensions[] = $result;
+            }
+        }
+
+        if (isset($row[57])){
+            $result = $this->prepare_dimensions($row[57] , 'screen', $row[58],  'Screen 2');
+            if ($result){
+                $dimensions[] = $result;
+            }
+        }
+        
+        if (isset($row[59])){
+            $data['description'] = $this->prepare_value($row[59]);
+        }
+        $data['dimensions'] = $dimensions;
+        $this->import_unit($data);
+    }
+
+    public function prepare_value($data){
+        if ($data == 'N/A'){
+            return null;
+        }
+        return $data;
+    }
+    
+    public function prepare_dimensions($data, $type, $comment = false, $name = ''){
+        $result = false;
+        if ($data && $data != 'N/A'){
+            // Split the string by "x" and trim any whitespace
+            $values = array_map('trim', explode('x', $data));
+
+            // Remove "mm" from each value and convert them to integers
+            $dimensions = array_map(function($value) {
+                return (int)str_replace('mm', '', $value);
+            }, $values);
+
+            // Map the values to their respective keys
+            $dimensionKeys = ['width', 'height', 'length'];
+            $result = [];
+
+            foreach ($dimensionKeys as $index => $key) {
+                $result[$key] = $dimensions[$index] ?? null;
+            }
+        }   
+
+        if ($result){
+           
+            if ($comment && $comment != 'N/A'){
+                $result['comment'] = ($comment);
+            }
+            else{
+                $result['comment'] = '';
+            }
+            if ($type){
+                $result['type'] = $type;
+            }
+            if ($index){
+                $result['name'] = $name;
+            }
+        }   
+        
+        return $result;
     }
 
     public function import_unit($unit_data){
@@ -301,7 +413,7 @@ class ImportController extends Controller
 
         $brand_data = $this->process_brand($unit_data);
         $location_data = $this->process_location($unit_data);
-        
+
         $unit = Unit::firstWhere('name', $unit_title);
         if (!$unit){
             $unit = Unit::create([
@@ -321,32 +433,50 @@ class ImportController extends Controller
 
   
 
-        foreach ($unit_data as $key => $meta) {
-            if (is_array($meta)) {
-                foreach ($meta as $type => $value) {
-                    if ($value){
-                        $unit->meta()->updateOrCreate([
-                            'meta_key' => $key.'_'.$type,
-                            'meta_value' => $value,
-                        ]);
-                    }
-                }
-            }
-            else{
-                if ($meta && strpos($key, 'cf_') === 0) {
-                    
-                    $unit->meta()->updateOrCreate(
-                        ['meta_key' => $key, 'unit_id' => $unit->id],
-                        ['meta_value' => $meta]
-                    );
-                  
-                }
-            }
-            
-        }
+        DB::transaction(function () use ($unit, $unit_data) {
+            $metaToInsertOrUpdate = [];
         
-        $unit->save();
-
+            foreach ($unit_data as $key => $meta) {
+             
+                if ($meta && strpos($key, 'cf_') === 0) {
+                    $metaToInsertOrUpdate[] = [
+                        'meta_key' => $key,
+                        'meta_value' => $meta,
+                        'unit_id' => $unit->id
+                    ];
+                }
+                
+            }
+        
+            // Now perform batch insert or update
+            foreach ($metaToInsertOrUpdate as $metaData) {
+                $unit->meta()->updateOrCreate(
+                    ['meta_key' => $metaData['meta_key'], 'unit_id' => $unit->id],
+                    ['meta_value' => $metaData['meta_value']]
+                );
+            }
+        
+            $unit->save();
+        });
+        
+        foreach ($unit_data['dimensions'] as $item) {
+           
+            Shelf::updateOrCreate(
+                [
+                    'name' => $item['name'],
+                    'unit_id' => $unit->id,
+                ],  // "name" is the column we're basing our update or create on
+                [
+                    'width' => $item['width'],
+                    'height' => $item['height'],
+                    'length' => $item['length'],
+                    'type' => $item['type'],
+                    'unit_id' => $unit->id,
+                    'name' => $item['name'],
+                    'comment' => $item['comment'],
+                ]
+            );
+        }
        
     }
 
