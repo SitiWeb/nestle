@@ -51,6 +51,13 @@
                         Manage Units
                     </a>
                 </li>
+                <li>
+                    <!-- Current: "bg-gray-50 text-indigo-600", Default: "text-gray-700 hover:text-indigo-600 hover:bg-gray-50" -->
+                    <a href="{{ route('import') }}" class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold
+            {{ request()->getRequestUri() == '/import' ? 'bg-neutral-200' : 'text-gray-700 hover:bg-neutral-200' }}">
+                        Import
+                    </a>
+                </li>
                 @endrole
 
                 @role('admin')
@@ -61,6 +68,7 @@
                         Manage Users
                     </a>
                 </li>
+               
                 @endrole
 
             </ul>
