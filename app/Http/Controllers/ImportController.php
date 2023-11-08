@@ -44,15 +44,25 @@ class ImportController extends Controller
         $worksheet = $spreadsheet->getActiveSheet();
 
         $rows = $worksheet->toArray();
-    
+        
+        $result = $this->prepare_head($rows);
+        $data_head = $result['data'];
+        
         // Skip the first 8 rows
-        $rows = array_slice($rows, 8);
-        $i = 9;
+        $rows = array_slice($rows, $result['header_row'] + 1);
+        
+        
+        $i = 2;
+        
         // Process the rows starting from row 9
         foreach ($rows as $row) {
-      
+            
             if (!empty($row[0])){
-                $data = $this->get_data($row);
+                if($row[0] == 'EXAMPLE'){
+                    continue;
+                }
+               
+                $data = $this->get_data($row, $data_head);
             }
             else{
                 break;
@@ -60,305 +70,128 @@ class ImportController extends Controller
             
             $i++;
         }
-    
-        
-
     }
 
-    public function get_data($row){
+    public function mapKey($value)
+    {
+        $parts = explode('|', $value);
 
-        $data = [
-            'cf_unit_number' => '',
-            'cf_nitr_location_code' => '',
-            'cf_nitr_data_source_code' => '',
-            'cf_region' => '',
-            'cf_nitr_region' => '',
-            'cf_nitr_top_50' => '',
-            'cf_nitr_top_46' => '',
-            'store' => '',
-            'retailer' => '',
-            'cf_unit_type' => '',
-            'cf_ba_present' => '',
-            'cf_install_date' => '',
-            'cf_audit_date' => '',
-            'cf_audit_date' => '',
-            'cf_auditing_supplier' => '',
-            'cf_auditing_supplier_technician' => '',
-            'cf_asset_tag_number' => '',
-            'cf_unit_condition' => '',
-            'sustainability_feature' => '',
-            'dimensions' => '',
-            'dimensions_comments' => '',
-            'graphic_dimensions' => '',
-            'actual_graphic_dimensions' => '',
-            'shelf_dimensions_1' => '',
-            'shelf_dimensions_2' => '',
-            'shelf_dimensions_3' => '',
-            'shelf_dimensions_4' => '',
-            'shelf_dimensions_5' => '',
-            'shelf_dimensions_6' => '',
-            'shelf_material' => '',
-            'shelf_comments' => '',
-            'screen_dimensions_1' => '',
-            'screen_dimensions_1' => '',
-            'screen_comments' => '',
-            'description' => '',
+        $keyMap = [
+            'unit number' => 'cf_unit_number',
+            'code' => 'cf_nitr_location_code',
+            'data source' => 'cf_nitr_data_source_code',
+            'audit date' => 'cf_audit_date',
+            'region' => 'cf_region',
+            'nitr region' => 'cf_nitr_region',
+            'nitr top 50 visibility ranking' => 'cf_nitr_top_50',
+            'nitr top 46 ranking' => 'cf_nitr_top_46',
+            'airport name' => 'airport_name',
+            'airport code' => 'airport_code',
+            'terminal' => 'terminal',
+            'store' => 'store',
+            'retailer' => 'retailer',
+            'customer level  4' => 'cf_customer_level_4',
+            'brand' => 'brand',
+            'wallbay' => 'brand_item',
+            'gondola' => 'brand_item',
+            'kitkat bus' => 'brand_item',
+            'fsu' => 'brand_item',
+            'cash till' => 'brand_item',
+            'lightbox' => 'brand_item',
+            'others' => 'brand_item',
+            'customer personalisation' => 'brand_item',
+            'multibranded' => 'brand_item',
+            'ba present at location' => 'cf_ba_present',
+            'install date' => 'cf_install_date',
+            'renovation date' => 'cf_renovation_date',
+            'supplier carrying out audit' => 'cf_auditing_supplier',
+            'person / technician carrying out audit' => 'cf_auditing_supplier_technician',
+            'asset tag id number' => 'cf_asset_tag_number',
+            'asset tag id' => 'cf_asset_tag_image',
+            'unit condition' => 'cf_unit_condition',
+            'sustainability feature' => 'cf_sustainability_feature',
+            'fixturebuild' => 'dimensions_fixturebuild',
+            'graphics/lightbox' => 'dimensions_graphics',
+            'graphics/lightbox actual graphic size' => 'dimensions_graphics',
+            'shelf strip' => 'dimensions_shelf',
+            'screen' => 'dimensions_screen',
+            'material / method recommended for update' => 'test',
+            'other unit / location specific information - any other useful information to be noted here. feel free to add columns if needed for other measurements or information' => 'description',
+            
+
+            '' => 'empty_row',
         ];
-
-        if (isset($row[0])){
-            $data['cf_unit_number'] = $this->prepare_value($row[0]);
-            
+        if (count($parts)> 1){
+            if ()
+            return $keyMap[trim($parts[0])] ?? 'unknown_key';
         }
-
-        if (isset($row[1])){
-            $data['cf_nitr_location_code'] = $this->prepare_value($row[1]);
+        else{
+            return $keyMap[trim($parts[0])] ?? 'unknown_key';
         }
-
-        if (isset($row[2])){
-            $data['cf_nitr_data_source_code'] = $this->prepare_value($row[2]);
-        }
-
-        if (isset($row[5])){
-            $data['cf_region'] = $this->prepare_value($row[5]);
-        }
-
-        if (isset($row[6])){
-            $data['cf_nitr_region'] = $this->prepare_value($row[6]);
-        }
-
-        if (isset($row[7])){
-            $data['cf_nitr_top_50'] = $this->prepare_value($row[7]);
-        }
-
-        if (isset($row[8])){
-            $data['cf_nitr_top_46'] = $this->prepare_value($row[8]);
-        }
-
-        if (isset($row[9])){
-            $data['airport_name'] = $this->prepare_value($row[9]);
-        }
-
-        if (isset($row[10])){
-            
-            $data['cf_unit_type'] = $this->prepare_value($row[10]);
-        }
-
-        if (isset($row[11])){
-            $data['airport_code'] = $this->prepare_value($row[11]);
-        }
-
-        if (isset($row[12])){
-            $data['terminal'] = $this->prepare_value($row[12]);
-        }
-
-        if (isset($row[13])){
-            $data['store'] = $this->prepare_value($row[13]);
-        }
-
-        if (isset($row[14])){
-            $data['retailer'] = $this->prepare_value($row[14]);
-        }
-
-        if (isset($row[15])){
-            $data['cf_customer_level_4'] = $this->prepare_value($row[15]);
-        }
-
-        if (isset($row[16])){
-            $data['brand'] = $this->prepare_value($row[16]);
-        }
-
         
-        if (isset($row[26])){
-            $data['cf_ba_present'] = $this->prepare_value($row[26]);
-        }
-        if (isset($row[27])){
-            if ($row[27] !== 'N/A'){
-                $date = \DateTime::createFromFormat('m/d/y', $row[27]);
-                if ($date){
-                    $databaseDate = $date->format('Y-m-d');
-                    $data['cf_install_date'] = $databaseDate;
-                }
-                
-                
+    }
+
+    public function prepare_head($rows){
+        $data = [];
+        foreach ($rows as $indexrow => $row){
+            $skip = [
+                '',
+                'Good Condition - no obvious defects',
+                'Requires Work - Unit is damaged and in need of repair (scratches, dents, peeling paint,)',
+                'Requires Replacement - Unit is beyond easy repair and should be scheduled for replacement',
+                'Yes',
+                'No',
+            ];
+            if (in_array(trim($row[0]),$skip)){
+                continue;
             }
-           
-       
-         
-        }
-        if (isset($row[28])){
-            if ($row[28] !== 'N/A'){
-                $date = \DateTime::createFromFormat('m/d/y', $row[28]);
-                if ($date){
-                    $databaseDate = $date->format('Y-m-d');
-                    $data['cf_renovation_date'] = $databaseDate;
+
+
+
+            foreach($row as $index => $column){
+                $result = preg_replace('/\([^)]*\)/', '', $column);
+                $result = str_replace('?', '', $result);
+                $value = trim(strtolower($result));
+                $key = $this->mapKey($value);
+                if ($key == 'empty_row'){
+                    continue;
+                }
+                $data[$index] = ['key' => $key];
+                
+                if ($key == 'unknown_key'){
+                    dd($value);
                 }
                 
             }
-           
-     
+            break;
         }
-        if (isset($row[29])){
-            if ($row[29] !== 'N/A'){
-                $date = \DateTime::createFromFormat('m/d/y', $row[29]);
-                if ($date){
-                    $databaseDate = $date->format('Y-m-d');
-                    $data['cf_audit_date'] = $databaseDate;
-                }
-                
+        $result = ['header_row' => $indexrow,
+                    'data' => $data];
+        
+        return ($result);
+        
+    }
+
+    public function get_data($row, $head){
+        $data = [];
+        foreach($head as $index => $column){
+            if ($column['key'] == 'brand_item'){
+                continue;
+            }
+            if (!$row[$index]){
+                continue;
+            }
+            // Define a regular expression pattern for date (mm/dd/yy or mm/dd/yyyy)
+            $datePattern = '/^(0?[1-9]|1[0-2])\/(0?[1-9]|[12][0-9]|3[01])\/(\d{2}|\d{4})$/';
+
+            if (preg_match($datePattern, $row[$index])) {
+                $data[$column['key']] =  $this->prepare_date($row[$index]);
+            } else {
+                $data[$column['key']] =  $this->prepare_value($row[$index]);
             }
             
         }
-
-
-
-
-        if (isset($row[30])){
-            $data['cf_auditing_supplier'] = $this->prepare_value($row[30]);
-        }
-
-        if (isset($row[31])){
-            $data['cf_auditing_supplier_technician'] = $this->prepare_value($row[31]);
-        }
-
-        if (isset($row[33])){
-            $data['cf_asset_tag_number'] = $this->prepare_value($row[33]);
-        }
-
-        if (isset($row[35])){
-            $data['cf_unit_condition'] = $this->prepare_value($row[35]);
-        }
-
-        if (isset($row[36])){
-   
-            $data['sustainability_feature'] = $this->prepare_value($row[36]);
-        }
-        $dimensions = [];
         
-        if (isset($row[37])){
-            
-            $result = $this->prepare_dimensions($row[37] , 'fixturebuild', $row[38], 'General Dimensions');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
- 
-        if (isset($row[39])){
-            $result = $this->prepare_dimensions($row[39] , 'graphics', $row[47] , 'Graphics visual 1');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[40])){
-            $result = $this->prepare_dimensions($row[40] , 'graphics', $row[47],  'Graphics actual 1');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[41])){
-            $result = $this->prepare_dimensions($row[41] , 'graphics', $row[47],  'Graphics visual 2');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[42])){
-            $result = $this->prepare_dimensions($row[42] , 'graphics', $row[47],  'Graphics actual 2');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[43])){
-            $result = $this->prepare_dimensions($row[43] , 'graphics', $row[47],  'Graphics actual 3');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[44])){
-            $result = $this->prepare_dimensions($row[44] , 'graphics', $row[47],  'Graphics visual 3');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[45])){
-            $result = $this->prepare_dimensions($row[45] , 'graphics', $row[47],  'Graphics actual 4');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[46])){
-            $result = $this->prepare_dimensions($row[46] , 'graphics', $row[47],  'Graphics visual 4');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[48])){
-            $result = $this->prepare_dimensions($row[48] , 'shelf', $row[55],  'Shelf 1');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[49])){
-            $result = $this->prepare_dimensions($row[49] , 'shelf', $row[55],  'Shelf 2');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[50])){
-            $result = $this->prepare_dimensions($row[50] , 'shelf', $row[55],  'Shelf 3');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[51])){
-            $result = $this->prepare_dimensions($row[51] , 'shelf', $row[55],  'Shelf 4');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[52])){
-            $result = $this->prepare_dimensions($row[52] , 'shelf', $row[55],  'Shelf 5');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[53])){
-            $result = $this->prepare_dimensions($row[53] , 'shelf', $row[55],  'Shelf 6');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-   
-
-        if (isset($row[56])){
-            $result = $this->prepare_dimensions($row[56] , 'screen', $row[58],  'Screen 1');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-
-        if (isset($row[57])){
-            $result = $this->prepare_dimensions($row[57] , 'screen', $row[58],  'Screen 2');
-            if ($result){
-                $dimensions[] = $result;
-            }
-        }
-        
-        if (isset($row[59])){
-            $data['description'] = $this->prepare_value($row[59]);
-        }
-        $data['dimensions'] = $dimensions;
         $this->import_unit($data);
     }
 
@@ -367,6 +200,16 @@ class ImportController extends Controller
             return null;
         }
         return $data;
+    }
+
+    public function prepare_date($data){
+        if ($data !== 'N/A'){
+            $date = \DateTime::createFromFormat('m/d/y', $data);
+            if ($date){
+                $databaseDate = $date->format('Y-m-d');
+                return $databaseDate;
+            }
+        }
     }
     
     public function prepare_dimensions($data, $type, $comment = false, $name = ''){
@@ -409,7 +252,16 @@ class ImportController extends Controller
     }
 
     public function import_unit($unit_data){
-        $unit_title = $unit_data['cf_unit_number'] . '_' . $unit_data['cf_nitr_data_source_code'];
+        if (isset( $unit_data['cf_nitr_data_source_code'])){
+            $unit_title = $unit_data['cf_unit_number'] . '_' . $unit_data['cf_nitr_data_source_code'];
+        }
+        else{
+            $unit_title = $unit_data['cf_unit_number'];
+        }
+        
+        if (!isset($unit_data['description'])){
+            $unit_data['description'] = '';
+        }
 
         $brand_data = $this->process_brand($unit_data);
         $location_data = $this->process_location($unit_data);
@@ -456,32 +308,36 @@ class ImportController extends Controller
                 );
             }
         
-            $unit->save();
+            $unit->save(); 
         });
-        
-        foreach ($unit_data['dimensions'] as $item) {
-           
-            Shelf::updateOrCreate(
-                [
-                    'name' => $item['name'],
-                    'unit_id' => $unit->id,
-                ],  // "name" is the column we're basing our update or create on
-                [
-                    'width' => $item['width'],
-                    'height' => $item['height'],
-                    'length' => $item['length'],
-                    'type' => $item['type'],
-                    'unit_id' => $unit->id,
-                    'name' => $item['name'],
-                    'comment' => $item['comment'],
-                ]
-            );
+        dd($unit_data);
+        if(isset($unit_data['dimensions'])){          
+            foreach ($unit_data['dimensions'] as $item) {
+                Shelf::updateOrCreate(
+                    [
+                        'name' => $item['name'],
+                        'unit_id' => $unit->id,
+                    ],  // "name" is the column we're basing our update or create on
+                    [
+                        'width' => $item['width'],
+                        'height' => $item['height'],
+                        'length' => $item['length'],
+                        'type' => $item['type'],
+                        'unit_id' => $unit->id,
+                        'name' => $item['name'],
+                        'comment' => $item['comment'],
+                    ]
+                );
+            }
         }
        
     }
 
     public function process_brand($data)
     {
+        if (!isset($data['brand'])){
+            dd($data);
+        }
         $brandsString = $data['brand']; // Your string
         $brands = explode(',', $brandsString);
         $result = [];
@@ -509,10 +365,29 @@ class ImportController extends Controller
     }
 
     public function process_location($data){
-        $store = $data['store'];
-        $slug =  Str::slug($data['store']);
-        $retailer = $data['retailer'];
-        $terminal = $data['terminal'];
+ 
+        if (!isset($data['store'])){
+            $store = '-';
+            $slug =  Str::slug($store);
+        }
+        else{
+            $store = $data['store'];
+            $slug =  Str::slug($data['store']);
+        }
+
+        if (!isset($data['retailer'])){
+            $retailer = '-';
+        }
+        else{
+            $retailer = $data['retailer'];
+        }
+        if (!isset($data['terminal'])){
+            $terminal = '-';
+        }
+        else{
+            $terminal = $data['terminal'];
+        }
+        
         $airport_name = $data['airport_name'];
         $airport_code = $data['airport_code'];
 

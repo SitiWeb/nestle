@@ -425,7 +425,7 @@ class UnitController extends Controller
             'extras' => $extra
         ];
 
-        $units = Unit::applyFilters($request)->with('brands', 'location')->paginate(16);
+        $units = Unit::applyFilters($request)->with('brands', 'location')->paginate(18);
      
         $units->each(function ($unit) {
             $settings = $unit->meta()->get()->pluck('meta_value', 'meta_key');

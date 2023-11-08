@@ -113,6 +113,8 @@ class LocationController extends Controller
     public function destroy(string $id)
     {
         $location = Location::findOrFail($id);
+
+        $location->units()->delete();
         // Delete the location or mark it as inactive based on your requirements
         $location->delete();
 
