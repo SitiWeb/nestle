@@ -110,11 +110,11 @@ class ImportController extends Controller
             'asset tag id' => 'cf_asset_tag_image',
             'unit condition' => 'cf_unit_condition',
             'sustainability feature' => 'cf_sustainability_feature',
-            'fixturebuild' => 'dimensions_fixturebuild',
-            'graphics/lightbox' => 'dimensions_graphics',
-            'graphics/lightbox actual graphic size' => 'dimensions_graphics',
-            'shelf strip' => 'dimensions_shelf',
-            'screen' => 'dimensions_screen',
+            'fixturebuild' => 'dimensions',
+            'graphics/lightbox' => 'dimensions',
+            'graphics/lightbox actual graphic size' => 'dimensions',
+            'shelf strip' => 'dimensions',
+            'screen' => 'dimensions',
             'material / method recommended for update' => 'test',
             'other unit / location specific information - any other useful information to be noted here. feel free to add columns if needed for other measurements or information' => 'description',
             
@@ -122,7 +122,7 @@ class ImportController extends Controller
             '' => 'empty_row',
         ];
         if (count($parts)> 1){
-            if ()
+         
             return $keyMap[trim($parts[0])] ?? 'unknown_key';
         }
         else{
@@ -156,7 +156,7 @@ class ImportController extends Controller
                 if ($key == 'empty_row'){
                     continue;
                 }
-                $data[$index] = ['key' => $key];
+                $data[$index] = ['key' => $key,'original' => $column];
                 
                 if ($key == 'unknown_key'){
                     dd($value);
@@ -175,6 +175,7 @@ class ImportController extends Controller
     public function get_data($row, $head){
         $data = [];
         foreach($head as $index => $column){
+          
             if ($column['key'] == 'brand_item'){
                 continue;
             }
@@ -186,12 +187,30 @@ class ImportController extends Controller
 
             if (preg_match($datePattern, $row[$index])) {
                 $data[$column['key']] =  $this->prepare_date($row[$index]);
-            } else {
+            }
+            elseif($column['key'] == 'dimensions'){
+                $result =  $this->prepare_dimensions($row[$index], 'fixturebuild');
+              
+                if ($result){
+                    
+                    if (!isset($result['name']) || !$result['name']){
+                        $parts = explode('|',  $column['original']);
+                        if (trim($parts[1]) == 'comments'){
+                            continue;
+                        }
+                        $result['name'] = trim($parts[0]). '_' . trim($parts[1]) . '_' . trim($parts[2]);
+                     
+                    }
+                    $data[$column['key']][] = $result;
+                }
+                
+            }        
+            else {
                 $data[$column['key']] =  $this->prepare_value($row[$index]);
             }
             
         }
-        
+       
         $this->import_unit($data);
     }
 
@@ -243,9 +262,10 @@ class ImportController extends Controller
             if ($type){
                 $result['type'] = $type;
             }
-            if ($index){
+            if ($name){
                 $result['name'] = $name;
             }
+            
         }   
         
         return $result;
@@ -310,8 +330,9 @@ class ImportController extends Controller
         
             $unit->save(); 
         });
-        dd($unit_data);
-        if(isset($unit_data['dimensions'])){          
+
+        if(isset($unit_data['dimensions'])){
+
             foreach ($unit_data['dimensions'] as $item) {
                 Shelf::updateOrCreate(
                     [

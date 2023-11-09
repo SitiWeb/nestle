@@ -117,7 +117,7 @@
                                 @endif
 
                                 <th style="width:50%" class="p-2 text-left">{{ $element['label'] }}</th>
-                                <td style="width:50%" class="p-2">{{ $element['value'] }}</td>
+                                <td style="width:50%" class="p-2">{!! $element['value'] !!}</td>
                                 </tr>
                             @endif
                         @endforeach

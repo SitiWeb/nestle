@@ -192,7 +192,7 @@ class UnitController extends Controller
                     $str = implode(' x ', $dimensions);
                     $new_label = implode('x', $label);
 
-                    $meta[] =  ['label' => $shelf->name.' ' .$row['label']. ' (' . $new_label.')'  , 'key' => $row['key'], 'value' => $str ];
+                    $meta[] =  ['label' => $shelf->name.' ' .$row['label']. ' (' . $new_label.')'  , 'key' => $row['key'], 'value' => $str.'<br><small>'.$shelf->comment.'</small>' ];
                
                 }
                 
@@ -200,7 +200,7 @@ class UnitController extends Controller
                 
             }
             elseif(strpos($row['key'], 'cf_') === 0){
-                $string = "example_date";
+         
 
                 $lastFiveChars = substr( $row['key'], -5);
 
@@ -338,26 +338,43 @@ class UnitController extends Controller
         // Store meta values
         $metaData = $request->input('fields');
         if ($metaData && is_array($metaData)) {
-
+            $checkbox = False;
             foreach ($metaData as $key => $meta) {
+                if ($key == 'cf_ba_present'){
+                    $checkbox = True;
+                }
                 if (is_array($meta)) {
+                    
                     foreach ($meta as $type => $value) {
-                        if ($value){
+                      
                             $unit->meta()->updateOrCreate(
                                 ['meta_key' => $key . '_' . $type, 'unit_id' => $unit->id],
                                 ['meta_value' => $value]
                             );
-                        }
+                        
                      
                     }
                 } else {
                     if ($meta){
+                   
                         $unit->meta()->updateOrCreate(
                             ['meta_key' => $key, 'unit_id' => $unit->id],
                             ['meta_value' => $meta]
                         );
                     }
                 }
+            }
+            if ($checkbox){
+                $unit->meta()->updateOrCreate(
+                            ['meta_key' => 'cf_ba_present', 'unit_id' => $unit->id],
+                            ['meta_value' => '1']
+                        );
+            }
+            else{
+                $unit->meta()->updateOrCreate(
+                            ['meta_key' => 'cf_ba_present', 'unit_id' => $unit->id],
+                            ['meta_value' => '0']
+                        );
             }
         }
        
@@ -425,7 +442,7 @@ class UnitController extends Controller
             'extras' => $extra
         ];
 
-        $units = Unit::applyFilters($request)->with('brands', 'location')->paginate(18);
+        $units = Unit::applyFilters($request)->with('brands', 'location')->paginate(16);
      
         $units->each(function ($unit) {
             $settings = $unit->meta()->get()->pluck('meta_value', 'meta_key');
@@ -544,27 +561,40 @@ class UnitController extends Controller
         
         // Insert the header row
         $csv->insertOne([
-            'ID', 
-            'Name', 
-            'Data Source',
+            // Original unit data
+            'Unit number',
+            'Code',
+            'Data source',
             'Audit date',
             'Region', 
             'NITR region',
-            'NITR top 50',
-            'Location name',
-            'Airport',
-            'Airport store',
-            'Airport code',
+            'NITR top 50 visibility ranking',
+            'Airport name',
             'Terminal',
             'Store',
-            'Brand',
+            'Retailer',
             'Ba representitive',
+            'Brand',
+            // Yellow data in CSV
+            'Wallbay',
+            'Gondola',
+            'KitKat Bus',
+            'FSU',
+            'Cash Till',
+            'Lightbox',
+            'Others (Pillars)',
+            'Customer Personalisation',
+            'MULTIBRANDED',
+            // Further unit data
+            'BA present at location',
             'Install Date',
             'Renovation Date',
+            'Audit date',
             'Auditing supplier',
             'auditing_supplier_technician',
             'Asset tag number',
             'Unit condition',
+            // Builds
             'Fixturebuild',
             'Graphicbuild',
             'Shelfstripbuild',
@@ -575,18 +605,68 @@ class UnitController extends Controller
      
         // Insert data rows
         foreach ($units as $row) {
-            $brand = $rowlocationretailer = $rowlocationname = $rowlocationterminal = $rowlocationairpot_code = $rowlocationairport_store_name = $region = $cf_audit_date = $cf_nitr_region = $cf_nitr_top_50 = $ba_present = $cf_install_date = $cf_renovation_date = $cf_auditing_supplier = $cf_auditing_supplier_technician = $cf_asset_tag_number = $cf_unit_condition = $cf_fixture_build = $cf_shelfstrip_build  = $cf_screen_build = $cf_graphic_build = '';
+            $brandarray = array();
+            $cf_graphic_str = $cf_fixture_str = $cf_screen_str = $cf_shelf_str = $cf_code = $cf_data_source = $brand = $rowlocationretailer = $rowlocationname = $rowlocationterminal = $rowlocationairpot_code = $rowlocationairport_store_name = $cf_region = $cf_audit_date = $cf_nitr_region = $cf_nitr_top_50 = $ba_present = $cf_install_date = $cf_renovation_date = $cf_auditing_supplier = $cf_auditing_supplier_technician = $cf_asset_tag_number = $cf_unit_condition = $cf_fixture_build = $cf_shelfstrip_build  = $cf_screen_build = $cf_graphic_build = '';
             $combinedDimensions = [];
-            foreach ($row->meta as $key => $value) {
-                if (strpos($key, 'cf_dimensions_') === 0) {
-                    $dimensionKey = substr($key, strlen('cf_dimensions_'));
-                    [$dimension, $property] = explode('_', $dimensionKey, 2);
-                    $combinedDimensions[$dimension][$property] = $value;
+            
+           
+            foreach($row->shelves as $shelf){
+ 
+                $dimensions = [];
+                $label = [];
+                if ($shelf->width) {
+                    $dimensions[] = (int)$shelf->width . 'mm';
+                    $label[] = 'L';
                 }
+
+                if ($shelf->height) {
+                    $dimensions[] = (int)$shelf->height . 'mm';
+                    $label[] = 'H';
+                }
+
+                if ($shelf->length) {
+                    $dimensions[] = (int)$shelf->length . 'mm';
+                    $label[] = 'D';
+                }
+                if($shelf->type == "fixturebuild"){
+                    if($cf_fixture_str == ''){
+                        $cf_fixture_str = $shelf->name .': '. implode(' x ', $dimensions);
+                    }else{
+                        $cf_fixture_str = $shelf->name .': '. implode(' x ', $dimensions) .' | '. $cf_fixture_str;
+
+                    }
+                    
+                }elseif($shelf->type == "graphics"){
+                    if($cf_graphic_str == ''){
+                        $cf_graphic_str = $shelf->name .': '. implode(' x ', $dimensions);
+                    }else{
+                        $cf_graphic_str = $shelf->name .': '. implode(' x ', $dimensions) .' | '. $cf_graphic_str;
+                    }
+                }elseif($shelf->type == "screen"){
+                    if($cf_screen_str == ''){
+                        $cf_screen_str = $shelf->name .': '. implode(' x ', $dimensions);
+                    }else{
+                        $cf_screen_str = $shelf->name .': '. implode(' x ', $dimensions) .' | '. $cf_screen_str;
+                    }
+                }elseif($shelf->type == "shelf"){
+                    if($cf_shelf_str == ''){
+                        $cf_shelf_str = $shelf->name .': '. implode(' x ', $dimensions);
+                    }else{
+                        $cf_shelf_str = $shelf->name .': '. implode(' x ', $dimensions) .' | '. $cf_shelf_str;
+                    }
+                }
+                //dd($str);
+            
             }
-      
+            
+            if (isset($row->meta['cf_nitr_location_code'])){
+                $cf_code = $row->meta['cf_nitr_location_code'];
+            }
+            if (isset($row->meta['cf_nitr_data_source_code'])){
+                $cf_data_source = $row->meta['cf_nitr_data_source_code'];
+            }
             if (isset($row->meta['cf_region'])){
-                $region = $row->meta['cf_region'];
+                $cf_region = $row->meta['cf_region'];
             }
             if (isset($row->meta['cf_audit_date'])){
                 $cf_audit_date = $row->meta['cf_audit_date'];
@@ -596,6 +676,9 @@ class UnitController extends Controller
             }
             if (isset($row->meta['cf_nitr_top_50'])){
                 $cf_nitr_top_50 = $row->meta['cf_nitr_top_50'];
+            }
+            if (isset( $row->location->airport_code)){
+                $rowlocationretailer = $row->location->airport_code;
             }
             if (isset($row->meta['cf_ba_present'])){
                 $ba_present = $row->meta['cf_ba_present'];
@@ -618,64 +701,91 @@ class UnitController extends Controller
             if (isset($row->meta['cf_unit_condition'])){
                 $cf_unit_condition = $row->meta['cf_unit_condition'];
             }
-            if (isset($combinedDimensions['fixturebuild']['length']) && isset($combinedDimensions['width']) && isset($combinedDimensions['height'])){
-                dd($combinedDimensions['fixturebuild']);
-                $cf_fixture_build = $combinedDimensions['fixturebuild']['length'] .'L x ' . $combinedDimensions['fixturebuild']['width'] .'W x '. $combinedDimensions['fixturebuild']['height'] .'H' ;
-            }
-            if (isset($combinedDimensions['graphicbuild']['length']) && isset($combinedDimensions['graphicbuild']['width']) && isset($combinedDimensions['graphicbuild']['height'])){
-                $cf_graphic_build = $combinedDimensions['graphicbuild']['length'] .'L x ' . $combinedDimensions['graphicbuild']['width'] .'W x '. $combinedDimensions['graphicbuild']['height'] .'H' ;
-            }
-            if (isset($combinedDimensions['shelfstrip']['length']) && isset($combinedDimensions['shelfstrip']['width']) && isset($combinedDimensions['shelfstrip']['height'])){
-                $cf_shelfstrip_build = $combinedDimensions['shelfstrip']['length'] .'L x ' . $combinedDimensions['shelfstrip']['width'] .'W x '. $combinedDimensions['shelfstrip']['height'] .'H' ;
-            }
-            if (isset($combinedDimensions['screen']['length']) && isset($combinedDimensions['screen']['width']) && isset($combinedDimensions['screen']['height']) ){
-                $cf_screen_build = $combinedDimensions['screen']['length'] .'L x ' . $combinedDimensions['screen']['width'] .'W x '. $combinedDimensions['screen']['height'] .'H' ;
-            }
+            
             if (isset($row->location) ){
                 $rowlocationname = $row->location->name;
                 $rowlocationairport_store_name = $row->location->airport_store_name;
-                $rowlocationairpot_code = $row->location->airpot_code;
                 $rowlocationterminal = $row->location->terminal;
                 $rowlocationname =  $row->location->name;
                 $rowlocationretailer =       $row->location->retailer;
             }
-            if (isset($row->brand) ){
-                $brand = $row->brand->name;
-            }
-            
-          
-         
-            $csv->insertOne([
-                $row->id, 
-                $row->name, 
-                'Data source fiels missing',
-                $cf_audit_date,
-                $region,
-                $cf_nitr_region,
-                $cf_nitr_top_50,
-                $rowlocationname,
-                $rowlocationairport_store_name,
-                $rowlocationairpot_code,
-                $rowlocationterminal,
-                $rowlocationname,
-                $rowlocationretailer,
-                $brand,
-                $ba_present,
-                $cf_install_date,
-                $cf_renovation_date,
-                $cf_auditing_supplier,
-                $cf_auditing_supplier_technician,
-                $cf_asset_tag_number,
-                $cf_unit_condition,
-                $cf_fixture_build,
-                $cf_graphic_build,
-                $cf_shelfstrip_build,
-                $cf_screen_build 
-
-
+            if (isset($row->brands) ){
                 
-
-
+                foreach($brand = $row->brands as $brand){
+                    array_push($brandarray, $brand->name);
+                }
+                $brands = implode(";", $brandarray);
+                
+            }
+            $csv->insertOne([
+                // Unit number 
+                $row->id, 
+                 // Code
+                $cf_code,
+                 // Data source
+                $cf_data_source,
+                // Audit date
+                $cf_audit_date,
+                // Region
+                $cf_region,
+                // NITR region
+                $cf_nitr_region,
+                // NITR top 50 visibility ranking
+                $cf_nitr_top_50,
+                // Airport name
+                $rowlocationairport_store_name,
+                // Terminal
+                $rowlocationterminal,
+                // Store
+                $rowlocationname,
+                // Retailer
+                $rowlocationretailer,
+                // BA reprensetative
+                $ba_present,
+                // Brand
+                $brands,
+                // 'Wallbay',
+                'Brand field missing',
+                // Gondola
+                'Brand field missing',
+                // KitKat Bus
+                'Brand field missing',
+                // FSU
+                'Brand field missing',
+                // Cash Till
+                'Brand field missing',
+                // Lightbox
+                'Brand field missing',
+                // Others (Pillars)
+                'Brand field missing',
+                // Customer Personalisation
+                'Brand field missing',
+                // MULTIBRANDED
+                'Brand field missing',
+                // BA present at location
+                'BA present at location field missing',
+                // Install date
+                $cf_install_date,
+                // Renovation date
+                $cf_renovation_date,
+                // Audit date
+                $cf_audit_date,
+                // Auditing supplier
+                $cf_auditing_supplier,
+                // Auditing supplier technician
+                $cf_auditing_supplier_technician,
+                // Asset tag nyumber
+                $cf_asset_tag_number,
+                // Unit condition
+                $cf_unit_condition,
+                // Fixture build
+                $cf_fixture_str,
+                // Graphic build
+                $cf_graphic_str,
+                // Shelfstrip build
+                $cf_shelf_str,
+                // Screen build
+                $cf_screen_str 
             ]);
         } 
         
