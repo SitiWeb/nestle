@@ -5,7 +5,7 @@
     </x-primary-link>
 @foreach($shelves as $index => $shelf)
     <div class="mb-4 my-4">
-
+ 
         <div class="flex flex-wrap -mx-3  w-full">
         
                 <div class=" w-1/4 px-3 md:mb-0">
@@ -20,10 +20,12 @@
                     ['name'=>'Fixturebuild','id'=>'fixturebuild'],
                 ];
                 @endphp
+               
                 <select name="{{ $shelf['name'] }}[{{$index}}][type]" id="{{ $shelf['name'] }}[{{$index}}][type]" wire:model="shelves.{{$index}}.type" class="block  shadow-sm sm:text-sm border-gray-300 rounded-md w-full ">
                     <option value=""></option>
                     @foreach($data as $row)
-                    @if ($row['id'] == $shelf['value'])
+                    
+                    @if ($row['id'] == $shelf['type'])
                     <option value="{{$row['id']}}" data-lookup="{{$row['name']}}" selected>
                         {{$row['name']}}
                     </option>
