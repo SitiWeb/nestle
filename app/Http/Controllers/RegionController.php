@@ -11,12 +11,14 @@ class RegionController extends Controller
 
 
 
-    $locations = location::all();
+    $locations = Location::all();
     $jsonData = Storage::get('public/countries.json');
+  
     $countries = json_decode($jsonData, true);
-    $countries_present = location::distinct()
+    
+    $countries_present = Location::distinct()
                     ->pluck('country');
-
+                   
     $continents = [];
     
     $mapdata = [];
@@ -32,30 +34,25 @@ class RegionController extends Controller
         if (!isset($continents[$continent])) {
             $continents[$continent] = [];
         }
-        if (in_array($countryCode,$mapdata)){
-            $count = $mapdata[$countryCode]['count']++;
-            $mapdata_row = [
-                'country' => $countryName,
-                'continent' => $continent,
-                'code' => $countryCode,
-                'shops' => $count,
-            ];
-        }
-        else{
-            $mapdata_row = [
-                'country' => $countryName,
-                'continent' => $continent,
-                'code' => $countryCode,
-                'shops' => 1,
-                'link' => route('units.overview').'?filter[country]='.$countryName,
-            ];
-        }
+     
+   
+        $mapdata_row = [
+            'country' => $countryName,
+            'continent' => $continent,
+            'code' => $countryCode,
+            'shops' => Location::where('country',$countryName )->count(),
+            'link' => route('units.overview').'?filter[country]='.$countryName,
+        ];
+        
+        
         $mapdata[$countryCode] = $mapdata_row;
+       
         
 
         $continents[$continent][] = $countryName;
   
     }
+    
     $data_points = ['data' => [
         'shops' => [
             'name' => 'Shops:',
