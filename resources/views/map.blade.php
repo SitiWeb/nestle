@@ -60,13 +60,16 @@
 
                 <div class="region-airport region-filter">
                     @if (!empty($continents))
-                    <div class="airport-countries" data-continent="{{($continent)}}" >
+                    <div class="airport-countries"  data-continent="{{($continent)}}" >
                         <ul>
+                            <?php $done = [];?>
                             @foreach($locations as $location)
-            
+                                @if (!in_array($location->airport_store_name, $done))
+                                <?php $done[] = $location->airport_store_name;?>
                                 <li class="airports pl-2 py-1 rounded" data-country="{{$location->country}}" data-airport="{{$location->airport_store_name}}" style="display:none;">
                                     <a href="#" class="">{{ $location->airport_store_name }}</a>
                                 </li>
+                                @endif
                             @endforeach
                         </ul>
                     </div>
@@ -84,7 +87,7 @@
                             @foreach($locations as $location)
             
                                 <li class="shops pl-2 py-1 rounded" data-airport="{{$location->airport_store_name}}" data-shop="{{$location->name}}" style="display:none;">
-                                    <a class="" href="{{ route('locations.show',$location) }}" >{{ $location->airport_store_name }}</a>
+                                    <a class="" href="{{ route('locations.show',$location) }}" >{{ $location->name }}</a>
                                 </li>
                             @endforeach
                         </ul>
@@ -126,7 +129,7 @@
         $('.country').click(function(e) {
             e.preventDefault();
             var country = $(this).data('country');
-            
+            console.log(country);
             $('.airports').hide();
             $('.shops').hide();
             
