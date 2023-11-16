@@ -18,6 +18,7 @@ class Shelf extends Model
         'height',
         'comment',
         'type',
+        'index',
     ];
     public function unit()
     {
