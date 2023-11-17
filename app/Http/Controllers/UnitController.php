@@ -215,8 +215,7 @@ class UnitController extends Controller
                             // Change the date format
                             $formattedDate = $carbonDate->format('d/m/Y');
                             
-                            // Output the formatted date
-                            echo $formattedDate;
+      
                         } catch (\Exception $e) {
                             $formattedDate = '-';
                         }
