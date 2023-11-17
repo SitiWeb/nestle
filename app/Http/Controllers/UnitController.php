@@ -210,7 +210,8 @@ class UnitController extends Controller
 
                         try {
                             // Create a Carbon instance by parsing the date
-                            $carbonDate = Carbon::createFromFormat('Y-d-m', $unit->meta[$row['key']]);
+                            var_dump($row['key']);
+                            $carbonDate = Carbon::createFromFormat('Y-m-d', $unit->meta[$row['key']]);
                             
                             // Change the date format
                             $formattedDate = $carbonDate->format('d/m/Y');
