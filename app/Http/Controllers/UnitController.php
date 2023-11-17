@@ -208,15 +208,20 @@ class UnitController extends Controller
                     if (isset($unit->meta[$row['key']])) {
                        
 
-                        // Convert the date to a Carbon instance
-                        $carbonDate = Carbon::parse($unit->meta[$row['key']]);
-
-                        // Change the date format
-                        $formattedDate = $carbonDate->format('d/m/Y');
-
-                        if (!$formattedDate){
+                        try {
+                            // Create a Carbon instance by parsing the date
+                            $carbonDate = Carbon::createFromFormat('d/m/y', $unit->meta[$row['key']]);
+                            
+                            // Change the date format
+                            $formattedDate = $carbonDate->format('d/m/Y');
+                            
+                            // Output the formatted date
+                            echo $formattedDate;
+                        } catch (\Exception $e) {
                             $formattedDate = '-';
                         }
+
+                     
 
                 
                         $meta[] = ['label' => $row['label'], 'key' => $row['key'], 'value' => $formattedDate];
