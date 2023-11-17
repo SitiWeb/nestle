@@ -209,8 +209,7 @@ class UnitController extends Controller
                        
 
                         try {
-                            // Create a Carbon instance by parsing the date
-                            var_dump($row['key']);
+               
                             $carbonDate = Carbon::createFromFormat('Y-m-d', $unit->meta[$row['key']]);
                             
                             // Change the date format
@@ -218,7 +217,7 @@ class UnitController extends Controller
                             
       
                         } catch (\Exception $e) {
-                            $formattedDate = '-';
+                            $formattedDate = 'invalid date format: '.$unit->meta[$row['key']];
                         }
 
                      
